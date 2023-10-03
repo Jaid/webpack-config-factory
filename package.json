@@ -1,0 +1,40 @@
+{
+  "version": "17.4.2",
+  "type": "module",
+  "name": "webpack-config-factory",
+  "description": "Takes tiny input and returns a Webpack config in the way I personally like.",
+  "keywords": [
+    "bundler",
+    "compiler",
+    "config",
+    "options",
+    "preset",
+    "settings",
+    "template",
+    "webpack",
+    "webpack-config",
+    "webpack-preset"
+  ],
+  "author": "Jaid <jaid.jsx@gmail.com> (https://github.com/Jaid)",
+  "homepage": "https://github.com/Jaid/webpack-config-factory",
+  "funding": "https://github.com/sponsors/jaid",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaid/webpack-config-factory"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21",
+    "normalize-package-data": "^6.0.0",
+    "read-file-json": "^1.1.0",
+    "read-package-json": "^7.0.0",
+    "ts-loader": "^9.4.4",
+    "typescript-declaration-webpack-plugin": "^0.3.0",
+    "webpack": "^5.88.2"
+  },
+  "devDependencies": {
+    "eslint-config-jaid": "^8.15.3",
+    "tsconfig-jaid-node": "^6.1.1"
+  },
+  "scripts": {},
+  "exports": "./src/index.ts"
+}
