@@ -11,9 +11,9 @@ export type Options = {
   contextFolder: string
   env: string
   outputFolder: string
-  plugins?: ConfigBuilderPlugin[]
+  plugins?: Array<ConfigBuilderPlugin>
 }
-export type TesterInput = RegExp | string | string[]
+export type TesterInput = Array<string> | RegExp | string
 export type PluginInput = Class<WebpackPluginInstance> | WebpackPluginInstance
 export interface ConfigBuilderPlugin {
   apply: (configBuilder: ConfigBuilder, hooks: HookMap) => void
@@ -90,7 +90,7 @@ export class ConfigBuilder {
   addClassOrInstance(key: Key, plugin: PluginInput, options?: unknown) {
     let instance: WebpackPluginInstance
     if (lodash.isFunction(plugin)) {
-      const Plugin = <Class<WebpackPluginInstance>> <unknown> plugin
+      const Plugin = (plugin as unknown) as Class<WebpackPluginInstance>
       if (options !== undefined) {
         instance = new Plugin(options)
       } else {
@@ -107,7 +107,7 @@ export class ConfigBuilder {
   addPlugin(plugin: PluginInput, options?: unknown) {
     this.addClassOrInstance(`plugins`, plugin, options)
   }
-  addResolveAlias(virtualFolder: string, ...replacements: string[]) {
+  addResolveAlias(virtualFolder: string, ...replacements: Array<string>) {
     this.setDefault(`resolve.alias`, {})
     const replacementsNormalized = replacements.map(replacement => this.fromContextFolder(replacement))
     this.config.resolve!.alias![virtualFolder] = replacementsNormalized
@@ -115,7 +115,7 @@ export class ConfigBuilder {
   addResolvePlugin(plugin: PluginInput, options?: unknown) {
     this.addClassOrInstance(`resolve.plugins`, plugin, options)
   }
-  addRule(testerInput: TesterInput, ...loaders: RuleSetUse[]) {
+  addRule(testerInput: TesterInput, ...loaders: Array<RuleSetUse>) {
     this.append(`module.rules`, {
       test: compileTester(testerInput),
       use: loaders,
@@ -150,17 +150,17 @@ export class ConfigBuilder {
     await hooks.afterBuild.promise()
     return hooks.finalizeConfig.promise(this.config)
   }
-  fromContextFolder(...pathSegments: string[]) {
+  fromContextFolder(...pathSegments: Array<string>) {
     return path.join(this.contextFolder, ...pathSegments)
   }
-  fromOutputFolder(...pathSegments: string[]) {
+  fromOutputFolder(...pathSegments: Array<string>) {
     return path.join(this.outputFolder, ...pathSegments)
   }
   get(key: Key) {
-    return <unknown> lodash.get(this.config, key)
+    return lodash.get(this.config, key) as unknown
   }
   getEnsuredArray(key: Key) {
-    const array = <unknown[] | undefined> this.get(key)
+    const array = this.get(key) as Array<unknown> | undefined
     if (Array.isArray(array)) {
       return array
     }
@@ -189,7 +189,7 @@ export class ConfigBuilder {
       this.set(key, value)
     }
   }
-  setExtensionAlias(extension: string, ...extensions: string[]) {
+  setExtensionAlias(extension: string, ...extensions: Array<string>) {
     this.setDefault(`resolve.extensionAlias`, {})
     const normalizedExtension = `.${extension}`
     const normalizedExtensions = extensions.map(extensionsEntry => `.${extensionsEntry}`)

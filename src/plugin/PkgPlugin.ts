@@ -18,7 +18,7 @@ export class PkgPlugin implements ConfigBuilderPlugin {
     hooks.beforeBuild.tapPromise(name, async () => {
       if (lodash.isString(this.options.pkg)) {
         const pkgFile = builder.fromContextFolder(this.options.pkg)
-        const pkg = <PackageJson> await readFileJson.default(pkgFile)
+        const pkg = await readFileJson.default(pkgFile) as PackageJson
         this.pkg = normalizePackageData(pkg)
       } else {
         this.pkg = normalizePackageData(this.options.pkg)

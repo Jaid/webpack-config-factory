@@ -1,7 +1,7 @@
 {
+  "name": "webpack-config-factory",
   "version": "17.4.2",
   "type": "module",
-  "name": "webpack-config-factory",
   "description": "Takes tiny input and returns a Webpack config in the way I personally like.",
   "keywords": [
     "bundler",
@@ -22,6 +22,10 @@
     "type": "git",
     "url": "https://github.com/jaid/webpack-config-factory"
   },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "test": "node --import tsx --test test/index.ts"
+  },
   "dependencies": {
     "lodash-es": "^4.17.21",
     "map-obj": "^5.0.2",
@@ -37,9 +41,5 @@
     "globby": "^14.0.1",
     "tsconfig-jaid-node": "^7.0.0",
     "yaml": "^2.4.0"
-  },
-  "scripts": {
-    "test": "node --import tsx --test test/index.ts"
-  },
-  "exports": "./src/index.ts"
+  }
 }
