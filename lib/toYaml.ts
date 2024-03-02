@@ -35,10 +35,10 @@ const replacer: StringifyReplacer = (key: string, value: unknown) => {
     return value
   }
   if (lodash.isObjectLike(value)) {
-    return <unknown> value
+    return value as unknown
   }
   if (Array.isArray(value)) {
-    return <unknown> value
+    return value as unknown
   }
   if (value instanceof RegExp) {
     return value.source
@@ -47,10 +47,10 @@ const replacer: StringifyReplacer = (key: string, value: unknown) => {
     return value.toISOString()
   }
   if (value instanceof Set) {
-    return <unknown> value
+    return value as unknown
   }
   if (value instanceof Map) {
-    return <unknown> value
+    return value as unknown
   }
   console.log(`${type} ${value?.constructor?.name} <- ${key}`)
   return {}
