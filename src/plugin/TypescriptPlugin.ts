@@ -17,6 +17,10 @@ const getTsLoaderOptions = (builder: ConfigBuilder) => {
   }
   if (builder.isDevelopment) {
     tsLoaderOptions.transpileOnly = true
+    tsLoaderOptions.compilerOptions = {
+      inlineSourceMap: true,
+      inlineSources: true,
+    }
   } else {
     tsLoaderOptions.compilerOptions = {
       declaration: true,
@@ -33,11 +37,15 @@ export class TypescriptPlugin implements ConfigBuilderPlugin {
     hooks.build.tapPromise(name, async () => {
       builder.addExtension(`ts`)
       builder.addPlugin(OutputConfigPlugin)
+      builder.addRuleCustom(`js`, {
+        loader: `source-map-loader`,
+        enforce: `pre`,
+      })
       builder.addRule(`ts`, {
         loader: `ts-loader`,
         options: getTsLoaderOptions(builder),
       })
-      builder.setExtensionAlias(`js`, `ts`, `js`)
+      builder.setExtensionAlias(`js`, `ts`)
     })
     hooks.buildProduction.tap(name, () => {
       builder.addPlugin(TypescriptDeclarationPlugin, {

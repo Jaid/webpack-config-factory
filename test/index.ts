@@ -1,5 +1,8 @@
+import type {Promisable} from 'type-fest'
+
 import path from 'node:path'
 import {it} from 'node:test'
+import {pathToFileURL} from 'node:url'
 import {promisify} from 'node:util'
 
 import fs from 'fs-extra'
@@ -9,7 +12,6 @@ import webpackOriginal from 'webpack'
 
 import {toCleanYamlFile} from '~/lib/toYaml.js'
 import {ConfigBuilder} from '~/src/ConfigBuilder.js'
-import {buildConfig} from '~/src/index.js'
 
 const webpack = promisify(webpackOriginal)
 class TempFile implements AsyncDisposable {
@@ -43,12 +45,35 @@ for (const fixture of fixtures) {
       const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
       const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
       await fs.emptyDir(outputFixtureFolder)
-      const configBuilder = new ConfigBuilder({
-        contextFolder: fixtureFolder,
-        outputFolder: outputCompilationFolder,
+      const builderFile = path.join(fixtureFolder, `builder.ts`)
+      const builderFileExists = await fs.pathExists(builderFile)
+      const context = {
+        fixture,
+        id,
         env,
-      })
+        fixtureFolder,
+        outputCompilationFolder,
+        outputMetaFolder,
+        outputFixtureFolder,
+      }
+      let configBuilder: ConfigBuilder
+      if (builderFileExists) {
+        const customBuilderModule = await import(pathToFileURL(builderFile).toString()) as {default: (((passedContext: typeof context) => Promisable<ConfigBuilder>) | ConfigBuilder)}
+        const customBuilder = customBuilderModule.default
+        if (customBuilder instanceof ConfigBuilder) {
+          configBuilder = customBuilder
+        } else {
+          configBuilder = await customBuilder(context)
+        }
+      } else {
+        configBuilder = new ConfigBuilder({
+          contextFolder: fixtureFolder,
+          outputFolder: outputCompilationFolder,
+          env,
+        })
+      }
       const config = await configBuilder.build()
+      await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
       await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
       const compilationResult = await webpack([config])
       const stats = compilationResult!.stats[0].compilation

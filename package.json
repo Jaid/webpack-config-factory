@@ -33,6 +33,7 @@
     "normalize-package-data": "^6.0.0",
     "read-file-json": "^1.1.0",
     "read-package-json": "^7.0.0",
+    "source-map-loader": "^5.0.0",
     "ts-loader": "^9.5.1",
     "typescript-declaration-webpack-plugin": "^0.3.0",
     "webpack": "^5.90.3"

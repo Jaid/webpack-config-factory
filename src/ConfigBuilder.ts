@@ -121,6 +121,12 @@ export class ConfigBuilder {
       use: loaders,
     })
   }
+  addRuleCustom(testerInput: TesterInput, ruleConfig: Record<string, unknown>) {
+    this.append(`module.rules`, {
+      test: compileTester(testerInput),
+      ...ruleConfig,
+    })
+  }
   append(key: Key, value: unknown) {
     const array = this.getEnsuredArray(key)
     array.push(value)
