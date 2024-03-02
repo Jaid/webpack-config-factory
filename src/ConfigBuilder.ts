@@ -147,6 +147,7 @@ export class ConfigBuilder {
     this.setDefault(`mode`, this.mode)
     this.setDefault(`target`, `web`)
     this.setDefault(`output.path`, this.outputFolder)
+    this.setDefault(`context`, this.contextFolder)
     await hooks.afterBuild.promise()
     return hooks.finalizeConfig.promise(this.config)
   }
@@ -193,6 +194,7 @@ export class ConfigBuilder {
     this.setDefault(`resolve.extensionAlias`, {})
     const normalizedExtension = `.${extension}`
     const normalizedExtensions = extensions.map(extensionsEntry => `.${extensionsEntry}`)
+    normalizedExtensions.push(normalizedExtension)
     this.config.resolve!.extensionAlias![normalizedExtension] = normalizedExtensions
   }
 }

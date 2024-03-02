@@ -27,6 +27,7 @@
     "test": "node --import tsx --test test/index.ts"
   },
   "dependencies": {
+    "@sindresorhus/is": "^6.2.0",
     "lodash-es": "^4.17.21",
     "map-obj": "^5.0.2",
     "normalize-package-data": "^6.0.0",

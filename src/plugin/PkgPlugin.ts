@@ -4,7 +4,7 @@ import type {PackageJson} from 'type-fest'
 import * as lodash from 'lodash-es'
 import readFileJson from 'read-file-json'
 
-import normalizePackageData from '~/lib/normalizePackageData.js'
+import {normalizePackageData} from '~/lib/normalizePackageData.js'
 
 export type Options = {
   pkg: PackageJson | string

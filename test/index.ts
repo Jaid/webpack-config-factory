@@ -1,19 +1,17 @@
-import type {TsConfigJson} from 'type-fest'
-
-import assert from 'node:assert'
 import path from 'node:path'
 import {it} from 'node:test'
 import {promisify} from 'node:util'
 
-import {execa} from 'execa'
 import fs from 'fs-extra'
 import {globby} from 'globby'
-import webpackModule from 'webpack'
+import {isEmpty} from 'lodash-es'
+import webpackOriginal from 'webpack'
 
-import {toCleanYamlFile, toYamlFile} from '~/lib/toYaml.js'
+import {toCleanYamlFile} from '~/lib/toYaml.js'
+import {ConfigBuilder} from '~/src/ConfigBuilder.js'
 import {buildConfig} from '~/src/index.js'
 
-const webpack = promisify(webpackModule)
+const webpack = promisify(webpackOriginal)
 class TempFile implements AsyncDisposable {
   #file: string
   constructor(file: string) {
@@ -36,17 +34,56 @@ const fixtures = await globby(`*`, {
   cwd: fixturesFolder,
   onlyDirectories: true,
 })
-console.dir(fixtures)
 for (const fixture of fixtures) {
-  it(`fixture ${fixture}`, async () => {
-    const fixtureFolder = path.join(fixturesFolder, fixture)
-    const outputFixtureFolder = path.join(outputFolder, fixture)
-    const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
-    const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
-    await fs.emptyDir(outputFixtureFolder)
-    const config = await buildConfig()
-    await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
-    const compilationResult = await webpack([config])
-    await toCleanYamlFile(compilationResult, path.join(outputMetaFolder, `compilation.yml`))
-  })
+  for (const env of [`production`, `development`]) {
+    const id = `${fixture}-${env}`
+    await it(`fixture ${id}`, async () => {
+      const fixtureFolder = path.join(fixturesFolder, fixture)
+      const outputFixtureFolder = path.join(outputFolder, id)
+      const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
+      const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
+      await fs.emptyDir(outputFixtureFolder)
+      const configBuilder = new ConfigBuilder({
+        contextFolder: fixtureFolder,
+        outputFolder: outputCompilationFolder,
+        env,
+      })
+      const config = await configBuilder.build()
+      await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
+      const compilationResult = await webpack([config])
+      const stats = compilationResult!.stats[0].compilation
+      const keys = [
+        `assetsInfo`,
+        `asyncEntrypoints`,
+        `buildModules`,
+        `chunkGraph`,
+        `chunkGroups`,
+        `chunks`,
+        `chunkTemplate`,
+        `comparedForEmitAssets`,
+        `entries`,
+        `entrypoints`,
+        `errors`,
+        `fileDependencies`,
+        `fullHash`,
+        `globalEntry`,
+        `logging`,
+        `mainTemplate`,
+        `missingDependencies`,
+        `namedChunkGroups`,
+        `namedChunks`,
+        `options`,
+        `records`,
+        `valueCacheVersions`,
+      ]
+      for (const key of keys) {
+        const value = stats[key] as unknown
+        if (isEmpty(value)) {
+          continue
+        }
+        const statsOutputFile = path.join(outputMetaFolder, `stats.${key}.yml`)
+        await toCleanYamlFile(value, statsOutputFile)
+      }
+    })
+  }
 }

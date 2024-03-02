@@ -1,23 +1,24 @@
+import console from 'node:console'
+
 import fs from 'fs-extra'
-import * as lodash from 'lodash-es'
-import mapObject, {mapObjectSkip} from 'map-obj'
-import yaml from 'yaml'
+import yaml, {Document, isPair, isScalar} from 'yaml'
 
 type StringifyReplacer = Parameters<typeof yaml["stringify"]>["1"]
 type StringifyOptions = Parameters<typeof yaml["stringify"]>["2"]
 
-const yamlSettings: StringifyOptions = {
-  collectionStyle: `block`,
+export type Visitor = Parameters<typeof yaml["visit"]>[1]
+
+export const yamlStringifySettings: StringifyOptions = {
   indentSeq: false,
   lineWidth: 0,
   minContentWidth: 0,
-  nullStr: `~`,
+  // nullStr: `~`,
   singleQuote: true,
 }
-const replacer: StringifyReplacer = (key: string, value: unknown) => {
+export const replacer: StringifyReplacer = (key: string, value: unknown) => {
   const type = typeof value
-  if (lodash.isFunction(value)) {
-    return {}
+  if (type === `function`) {
+    return
   }
   if (type === `string`) {
     return value
@@ -34,12 +35,6 @@ const replacer: StringifyReplacer = (key: string, value: unknown) => {
   if (value === null) {
     return value
   }
-  if (lodash.isObjectLike(value)) {
-    return value as unknown
-  }
-  if (Array.isArray(value)) {
-    return value as unknown
-  }
   if (value instanceof RegExp) {
     return value.source
   }
@@ -52,20 +47,55 @@ const replacer: StringifyReplacer = (key: string, value: unknown) => {
   if (value instanceof Map) {
     return value as unknown
   }
-  console.log(`${type} ${value?.constructor?.name} <- ${key}`)
-  return {}
+  if (Array.isArray(value)) {
+    return value as unknown
+  }
+  if (type === `object`) {
+    return value as unknown
+  }
+  return
+}
+export const skipUnderscoreReplacer: StringifyReplacer = (key: string, value: unknown) => {
+  if (typeof key === `string` && key.startsWith(`_`)) {
+    return
+  }
+  return replacer(key, value)
 }
 
 export const toYaml = (input: unknown) => {
-  return yaml.stringify(input, undefined, yamlSettings)
-}
-
-export const toCleanYaml = (input: unknown) => {
-  return yaml.stringify(input, replacer, yamlSettings)
+  return yaml.stringify(input, undefined, yamlStringifySettings)
 }
 
 export const toYamlFile = async (input: unknown, file: string) => {
   await fs.outputFile(file, toYaml(input))
+}
+
+export const toCleanYaml = (input: unknown) => {
+  const document = new Document(input)
+  const removeFunctionsVisitor: Visitor = {
+    Scalar: (key, node, path) => {
+      const value = node.value
+      if (typeof value === `function`) {
+        const newNode = document.createNode({}, {flow: true})
+        newNode.comment = ` ${value.toString()}`
+        return newNode
+      }
+    },
+  }
+  const skipUnderscoreVisitor: Visitor = {
+    Pair: (key, node, path) => {
+      // @ts-expect-error
+      const fieldName = node.key?.value as unknown
+      if (typeof fieldName === `string` && fieldName.startsWith(`_`)) {
+        return yaml.visit.REMOVE
+      }
+    },
+  }
+  yaml.visit(document, removeFunctionsVisitor)
+  yaml.visit(document, skipUnderscoreVisitor)
+  return document.toString({
+    ...yamlStringifySettings,
+  })
 }
 
 export const toCleanYamlFile = async (input: unknown, file: string) => {
