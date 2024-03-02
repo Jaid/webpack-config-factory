@@ -28,15 +28,15 @@
     "normalize-package-data": "^6.0.0",
     "read-file-json": "^1.1.0",
     "read-package-json": "^7.0.0",
-    "ts-loader": "^9.4.4",
+    "ts-loader": "^9.5.1",
     "typescript-declaration-webpack-plugin": "^0.3.0",
-    "webpack": "^5.88.2"
+    "webpack": "^5.90.3"
   },
   "devDependencies": {
-    "eslint-config-jaid": "^8.15.3",
-    "globby": "^13.2.2",
-    "tsconfig-jaid-node": "^6.1.1",
-    "yaml": "^2.3.3"
+    "eslint-config-jaid": "^8.23.0",
+    "globby": "^14.0.1",
+    "tsconfig-jaid-node": "^7.0.0",
+    "yaml": "^2.4.0"
   },
   "scripts": {
     "test": "node --import tsx --test test/index.ts"
