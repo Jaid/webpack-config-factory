@@ -1,5 +1,4 @@
 import {ConfigBuilder} from './ConfigBuilder.js'
-import {LibConfigBuilder} from './LibConfigBuilder.js'
 
 const buildConfig = async () => {
   const configBuilder = new ConfigBuilder
