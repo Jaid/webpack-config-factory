@@ -1,13 +1,14 @@
 import type {Promisable} from 'type-fest'
 
 import path from 'node:path'
-import {it} from 'node:test'
+import test from 'node:test'
 import {pathToFileURL} from 'node:url'
 import {promisify} from 'node:util'
 
+import is from '@sindresorhus/is'
 import fs from 'fs-extra'
 import {globby} from 'globby'
-import {isEmpty} from 'lodash-es'
+import * as lodash from 'lodash-es'
 import webpackOriginal from 'webpack'
 
 import {toCleanYamlFile} from '~/lib/toYaml.js'
@@ -36,79 +37,84 @@ const fixtures = await globby(`*`, {
   cwd: fixturesFolder,
   onlyDirectories: true,
 })
+test.before(async () => {
+  await fs.emptyDir(outputFolder)
+})
 for (const fixture of fixtures) {
-  for (const env of [`production`, `development`]) {
-    const id = `${fixture}-${env}`
-    await it(`fixture ${id}`, async () => {
-      const fixtureFolder = path.join(fixturesFolder, fixture)
-      const outputFixtureFolder = path.join(outputFolder, id)
-      const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
-      const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
-      await fs.emptyDir(outputFixtureFolder)
-      const builderFile = path.join(fixtureFolder, `builder.ts`)
-      const builderFileExists = await fs.pathExists(builderFile)
-      const context = {
-        fixture,
-        id,
-        env,
-        fixtureFolder,
-        outputCompilationFolder,
-        outputMetaFolder,
-        outputFixtureFolder,
-      }
-      let configBuilder: ConfigBuilder
-      if (builderFileExists) {
-        const customBuilderModule = await import(pathToFileURL(builderFile).toString()) as {default: (((passedContext: typeof context) => Promisable<ConfigBuilder>) | ConfigBuilder)}
-        const customBuilder = customBuilderModule.default
-        if (customBuilder instanceof ConfigBuilder) {
-          configBuilder = customBuilder
-        } else {
-          configBuilder = await customBuilder(context)
-        }
-      } else {
-        configBuilder = new ConfigBuilder({
-          contextFolder: fixtureFolder,
-          outputFolder: outputCompilationFolder,
+  await test(`fixture ${fixture}`, async testContext => {
+    for (const env of [`production`, `development`]) {
+      await testContext.test(`env ${env}`, async innerTestContext => {
+        const id = `${fixture}-${env}`
+        const fixtureFolder = path.join(fixturesFolder, fixture)
+        const outputFixtureFolder = path.join(outputFolder, id)
+        const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
+        const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
+        const builderFile = path.join(fixtureFolder, `builder.ts`)
+        const builderFileExists = await fs.pathExists(builderFile)
+        const context = {
+          fixture,
+          id,
           env,
-        })
-      }
-      const config = await configBuilder.build()
-      await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
-      await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
-      const compilationResult = await webpack([config])
-      const stats = compilationResult!.stats[0].compilation
-      const keys = [
-        `assetsInfo`,
-        `asyncEntrypoints`,
-        `buildModules`,
-        `chunkGraph`,
-        `chunkGroups`,
-        `chunks`,
-        `chunkTemplate`,
-        `comparedForEmitAssets`,
-        `entries`,
-        `entrypoints`,
-        `errors`,
-        `fileDependencies`,
-        `fullHash`,
-        `globalEntry`,
-        `logging`,
-        `mainTemplate`,
-        `missingDependencies`,
-        `namedChunkGroups`,
-        `namedChunks`,
-        `options`,
-        `records`,
-        `valueCacheVersions`,
-      ]
-      for (const key of keys) {
-        const value = stats[key] as unknown
-        if (isEmpty(value)) {
-          continue
+          fixtureFolder,
+          outputCompilationFolder,
+          outputMetaFolder,
+          outputFixtureFolder,
         }
-        const statsOutputFile = path.join(outputMetaFolder, `stats.${key}.yml`)
-        await toCleanYamlFile(value, statsOutputFile)
-      }
-    })
-  }
+        let configBuilder: ConfigBuilder
+        if (builderFileExists) {
+          const customBuilderModule = await import(pathToFileURL(builderFile).toString()) as {default: (((passedContext: typeof context) => Promisable<ConfigBuilder>) | ConfigBuilder)}
+          const customBuilder = customBuilderModule.default
+          if (customBuilder instanceof ConfigBuilder) {
+            configBuilder = customBuilder
+          } else {
+            configBuilder = await customBuilder(context)
+          }
+        } else {
+          configBuilder = new ConfigBuilder({
+            contextFolder: fixtureFolder,
+            outputFolder: outputCompilationFolder,
+            env,
+          })
+        }
+        const config = await configBuilder.build()
+        await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
+        await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
+        const compilationResult = await webpack([config])
+        const stats = compilationResult!.stats[0].compilation
+        const keys = [
+          `assetsInfo`,
+          `asyncEntrypoints`,
+          `buildModules`,
+          `chunkGraph`,
+          `chunkGroups`,
+          `chunks`,
+          `chunkTemplate`,
+          `comparedForEmitAssets`,
+          `entries`,
+          `entrypoints`,
+          `errors`,
+          `fileDependencies`,
+          `fullHash`,
+          `globalEntry`,
+          `logging`,
+          `mainTemplate`,
+          `missingDependencies`,
+          `namedChunkGroups`,
+          `namedChunks`,
+          `options`,
+          `records`,
+          `valueCacheVersions`,
+        ]
+        for (const key of keys) {
+          const value = stats[key] as unknown
+          const isEmpty = is.set(value) ? value.size === 0 : lodash.isEmpty(value)
+          if (isEmpty) {
+            continue
+          }
+          const statsOutputFile = path.join(outputMetaFolder, `stats.${key}.yml`)
+          await toCleanYamlFile(value, statsOutputFile)
+        }
+      })
+    }
+  })
 }

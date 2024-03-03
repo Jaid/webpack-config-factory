@@ -24,13 +24,15 @@
   },
   "exports": "./src/index.ts",
   "scripts": {
-    "test": "node --import tsx --test test/index.ts"
+    "test": "node --trace-deprecation --import tsx --test test/index.ts"
   },
   "dependencies": {
+    "@prettier/sync": "^0.5.1",
     "@sindresorhus/is": "^6.2.0",
     "lodash-es": "^4.17.21",
     "map-obj": "^5.0.2",
     "normalize-package-data": "^6.0.0",
+    "prettier": "^3.2.5",
     "read-file-json": "^1.1.0",
     "read-package-json": "^7.0.0",
     "source-map-loader": "^5.0.0",

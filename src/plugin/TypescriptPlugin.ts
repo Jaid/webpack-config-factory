@@ -36,7 +36,7 @@ export class TypescriptPlugin implements ConfigBuilderPlugin {
   apply(builder: ConfigBuilder, hooks: HookMap) {
     hooks.build.tapPromise(name, async () => {
       builder.addExtension(`ts`)
-      builder.addPlugin(OutputConfigPlugin)
+      // builder.addPlugin(OutputConfigPlugin)
       builder.addRuleCustom(`js`, {
         loader: `source-map-loader`,
         enforce: `pre`,
@@ -48,9 +48,9 @@ export class TypescriptPlugin implements ConfigBuilderPlugin {
       builder.setExtensionAlias(`js`, `ts`)
     })
     hooks.buildProduction.tap(name, () => {
-      builder.addPlugin(TypescriptDeclarationPlugin, {
-        out: builder.fromOutputFolder(tempTypesFolder),
-      })
+      // builder.addPlugin(TypescriptDeclarationPlugin, {
+      //   out: builder.fromOutputFolder(tempTypesFolder),
+      // })
     })
   }
   contructor(options: Partial<Options>) {
