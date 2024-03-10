@@ -11,7 +11,7 @@ export default function (context) {
     plugins: [
       new CommonPlugin,
       new TypescriptPlugin,
-      // new PkgPlugin,
+      new PkgPlugin,
     ],
   })
   return configBuilder

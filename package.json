@@ -24,7 +24,7 @@
   },
   "exports": "./src/index.ts",
   "scripts": {
-    "test": "node --trace-deprecation --import tsx --test test/index.ts"
+    "test": "node --import tsx --test test/test.ts"
   },
   "dependencies": {
     "@prettier/sync": "^0.5.1",

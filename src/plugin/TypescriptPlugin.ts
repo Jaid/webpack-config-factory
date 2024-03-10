@@ -2,10 +2,6 @@ import type {ConfigBuilder, ConfigBuilderPlugin, HookMap} from '../ConfigBuilder
 import type {Options as TsLoaderOptions} from 'ts-loader'
 import type {PackageJson} from 'type-fest'
 
-import TypescriptDeclarationPlugin from 'typescript-declaration-webpack-plugin'
-
-import {OutputConfigPlugin} from '../OutputConfigPlugin.js'
-
 export type Options = {
   pkg?: PackageJson | string
 }
@@ -33,10 +29,12 @@ const name = `TypescriptPlugin`
 export class TypescriptPlugin implements ConfigBuilderPlugin {
   protected options: Options
   protected pkg: PackageJson | undefined
+  constructor(options: Partial<Options> = {}) {
+    this.options = options
+  }
   apply(builder: ConfigBuilder, hooks: HookMap) {
     hooks.build.tapPromise(name, async () => {
       builder.addExtension(`ts`)
-      // builder.addPlugin(OutputConfigPlugin)
       builder.addRuleCustom(`js`, {
         loader: `source-map-loader`,
         enforce: `pre`,
@@ -52,8 +50,5 @@ export class TypescriptPlugin implements ConfigBuilderPlugin {
       //   out: builder.fromOutputFolder(tempTypesFolder),
       // })
     })
-  }
-  contructor(options: Partial<Options>) {
-    this.options = options
   }
 }

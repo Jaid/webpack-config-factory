@@ -11,6 +11,9 @@ const name = `CommonPlugin`
 export class CommonPlugin implements ConfigBuilderPlugin {
   protected options: Options
   protected pkg: PackageJson | undefined
+  constructor(options: Partial<Options> = {}) {
+    this.options = options
+  }
   apply(builder: ConfigBuilder, hooks: HookMap) {
     hooks.setDefaultOptions.tap(name, defaultOptions => {
       return {
@@ -24,10 +27,10 @@ export class CommonPlugin implements ConfigBuilderPlugin {
       builder.set(`experiments.futureDefaults`, true)
       // builder.addExtension(`ts`)
       // builder.addPlugin(OutputConfigPlugin)
-      builder.addResolveAlias(`~/lib`, `lib`)
-      builder.addResolveAlias(`~/src`, `src`)
-      builder.addResolveAlias(`~/etc`, `etc`)
-      builder.addResolveAlias(`~/root`, `.`)
+      // builder.addResolveAlias(`~/lib`, `lib`)
+      // builder.addResolveAlias(`~/src`, `src`)
+      // builder.addResolveAlias(`~/etc`, `etc`)
+      builder.addResolveAlias(`~`, `.`)
     })
     hooks.buildProduction.tap(name, () => {
       builder.set(`optimization.minimize`, false)
@@ -46,8 +49,5 @@ export class CommonPlugin implements ConfigBuilderPlugin {
         outputFolder: options.outputFolder.replaceAll(`{{mode}}`, mode),
       }
     })
-  }
-  contructor(options: Partial<Options>) {
-    this.options = options
   }
 }
