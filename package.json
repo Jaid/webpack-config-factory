@@ -43,7 +43,7 @@
   "devDependencies": {
     "eslint-config-jaid": "^8.23.0",
     "globby": "^14.0.1",
-    "tsconfig-jaid-node": "^7.0.0",
+    "tsconfig-jaid-node": "^7.1.0",
     "yaml": "^2.4.1"
   }
 }
