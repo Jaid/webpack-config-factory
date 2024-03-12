@@ -12,6 +12,7 @@ import webpackOriginal from 'webpack'
 
 import {toCleanYamlFile} from '~/lib/toYaml.js'
 import {ConfigBuilder} from '~/src/ConfigBuilder.js'
+import {outputWebpackStats} from '~/test/lib/outputWebpackStats.js'
 
 const thisFolder = path.dirname(fileURLToPath(import.meta.url))
 const rootFolder = path.resolve(thisFolder, `..`, `..`)
@@ -60,41 +61,14 @@ export const runTest = async (testContext: TestContext) => {
   await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
   await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
   const compilationResult = await webpack([config])
-  if (!process.env.OUTPUT_WEBPACK_STATS) {
-    return
+  if (compilationResult === undefined) {
+    throw new Error(`Webpack compilation did not return anything`)
   }
-  const stats = compilationResult!.stats[0].compilation
-  const keys = [
-    `assetsInfo`,
-    `asyncEntrypoints`,
-    `buildModules`,
-    `chunkGraph`,
-    `chunkGroups`,
-    `chunks`,
-    `chunkTemplate`,
-    `comparedForEmitAssets`,
-    `entries`,
-    `entrypoints`,
-    `errors`,
-    `fileDependencies`,
-    `fullHash`,
-    `globalEntry`,
-    `logging`,
-    `mainTemplate`,
-    `missingDependencies`,
-    `namedChunkGroups`,
-    `namedChunks`,
-    `options`,
-    `records`,
-    `valueCacheVersions`,
-  ]
-  for (const key of keys) {
-    const value = stats[key] as unknown
-    const isEmpty = is.set(value) ? value.size === 0 : lodash.isEmpty(value)
-    if (isEmpty) {
-      continue
-    }
-    const statsOutputFile = path.join(outputMetaFolder, `stats.${key}.yml`)
-    await toCleanYamlFile(value, statsOutputFile)
+  if (compilationResult.hasErrors()) {
+    throw new Error(`Compilation finished with errors`)
+  }
+  if (process.env.OUTPUT_WEBPACK_STATS) {
+    const statsFolder = path.join(outputMetaFolder, `stats`)
+    await outputWebpackStats(compilationResult.stats, statsFolder)
   }
 }
