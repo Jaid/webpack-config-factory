@@ -1,0 +1,9 @@
+{
+  "name": "webpack-config-factory-fixture-lib",
+  "version": "1.0.0",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "lodash-es": "4.17.21"
+  }
+}

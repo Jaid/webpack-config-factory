@@ -104,6 +104,10 @@ export class ConfigBuilder {
   addExtension(extension: string) {
     this.appendUnique(`resolve.extensions`, `.${extension}`)
   }
+  addMinimizer(plugin: PluginInput, options?: unknown) {
+    this.addClassOrInstance(`optimization.minimizer`, plugin, options)
+    this.set(`optimization.minimize`, true)
+  }
   addPlugin(plugin: PluginInput, options?: unknown) {
     this.addClassOrInstance(`plugins`, plugin, options)
   }

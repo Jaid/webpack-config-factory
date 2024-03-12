@@ -1,8 +1,6 @@
 import type {ConfigBuilder, ConfigBuilderPlugin, HookMap} from '../ConfigBuilder.js'
 import type {PackageJson} from 'type-fest'
 
-import {OutputConfigPlugin} from '../OutputConfigPlugin.js'
-
 export type Options = {
   pkg?: PackageJson | string
 }
@@ -33,7 +31,7 @@ export class CommonPlugin implements ConfigBuilderPlugin {
       builder.addResolveAlias(`~`, `.`)
     })
     hooks.buildProduction.tap(name, () => {
-      builder.set(`optimization.minimize`, false)
+      builder.setDefault(`optimization.minimize`, false)
       builder.set(`output.clean`, true)
     })
     hooks.buildDevelopment.tap(name, () => {

@@ -1,4 +1,4 @@
-import type {TestContext} from '~/root/test/lib/types.js'
+import type {TestContext} from '~/test/lib/types.js'
 import type {Promisable} from 'type-fest'
 
 import path from 'node:path'
@@ -22,7 +22,7 @@ export const outputFolder = path.join(rootFolder, `out`, `fixture`)
 
 export const runTest = async (testContext: TestContext) => {
   const id = testContext.name
-  const [fixtureProject, env] = id.split(`-`)
+  const {fixtureProject, env} = /^(?<fixtureProject>.+)-(?<env>.+)$/.exec(id)!.groups!
   const fixtureFolder = path.join(fixturesFolder, fixtureProject)
   const outputFixtureFolder = path.join(outputFolder, id)
   await fs.emptyDir(outputFixtureFolder)
@@ -60,6 +60,9 @@ export const runTest = async (testContext: TestContext) => {
   await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
   await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
   const compilationResult = await webpack([config])
+  if (!process.env.OUTPUT_WEBPACK_STATS) {
+    return
+  }
   const stats = compilationResult!.stats[0].compilation
   const keys = [
     `assetsInfo`,

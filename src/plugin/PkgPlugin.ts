@@ -37,7 +37,7 @@ export class PkgPlugin implements ConfigBuilderPlugin {
         `name`,
         `version`,
         `type`,
-      ])
+      ]) as PackageJson
       builder.addPlugin(this.#makeEmitter(reducedPkg))
     })
     hooks.buildProduction.tap(name, () => {
@@ -52,8 +52,11 @@ export class PkgPlugin implements ConfigBuilderPlugin {
         `homepage`,
         `repository`,
         `type`,
-      ])
-      const pkg = that.pkg as PackageJson
+        `dependencies`,
+        `peerDependencies`,
+        `optionalDependencies`,
+        `peerDependenciesMeta`,
+      ]) as PackageJson
       builder.addPlugin(this.#makeEmitter(reducedPkg))
     })
   }
