@@ -1,6 +1,7 @@
 import type webpack from 'webpack'
 
 import is from '@sindresorhus/is'
+import fs from 'fs-extra'
 import {toCleanYamlFile} from 'lib/toYaml.js'
 import * as lodash from 'lodash-es'
 import * as path from 'zeug/path'
@@ -42,13 +43,16 @@ export const outputWebpackStats = async (stats: Array<webpack.Stats> | webpack.S
     }
     return
   }
+  await fs.emptyDir(folder)
+  const jobs: Array<Promise<void>> = []
   for (const key of keys) {
-    const value = stats[key] as unknown
+    const value = stats.compilation[key] as unknown
     const isEmpty = is.set(value) ? value.size === 0 : lodash.isEmpty(value)
     if (isEmpty) {
       continue
     }
     const statsOutputFile = path.join(folder, `${key}.yml`)
-    await toCleanYamlFile(value, statsOutputFile)
+    jobs.push(toCleanYamlFile(value, statsOutputFile))
   }
+  await Promise.all(jobs)
 }

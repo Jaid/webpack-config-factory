@@ -5,9 +5,7 @@ import path from 'node:path'
 import {fileURLToPath, pathToFileURL} from 'node:url'
 import {promisify} from 'node:util'
 
-import is from '@sindresorhus/is'
 import fs from 'fs-extra'
-import * as lodash from 'lodash-es'
 import webpackOriginal from 'webpack'
 
 import {toCleanYamlFile} from '~/lib/toYaml.js'
@@ -70,5 +68,6 @@ export const runTest = async (testContext: TestContext) => {
   if (process.env.OUTPUT_WEBPACK_STATS) {
     const statsFolder = path.join(outputMetaFolder, `stats`)
     await outputWebpackStats(compilationResult.stats, statsFolder)
+    console.log(`Webpack stats wrote to ${statsFolder}`)
   }
 }
