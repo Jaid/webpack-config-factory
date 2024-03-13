@@ -1,5 +1,7 @@
 import type {FixtureConfig} from '~/test/lib/runTest.js'
 
+import {LibPlugin} from 'src/plugin/LibPlugin.js'
+
 import {ConfigBuilder} from '~/src/ConfigBuilder.js'
 import {CommonPlugin} from '~/src/plugin/CommonPlugin.js'
 import {PkgPlugin} from '~/src/plugin/PkgPlugin.js'
@@ -14,6 +16,7 @@ export const configBuilder: FixtureConfig['configBuilder'] = context => {
       new CommonPlugin,
       new TypescriptPlugin,
       new PkgPlugin,
+      new LibPlugin,
     ],
   })
   return builder

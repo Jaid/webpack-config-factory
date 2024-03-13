@@ -75,13 +75,14 @@ export const runTest = async (testContext: TestContext) => {
   if (compilationResult === undefined) {
     throw new Error(`Webpack compilation did not return anything`)
   }
-  if (compilationResult.hasErrors()) {
-    throw new Error(`Compilation finished with errors`)
-  }
-  if (process.env.OUTPUT_WEBPACK_STATS) {
+  if (!process.env.OUTPUT_WEBPACK_STATS) {
     const statsFolder = path.join(outputMetaFolder, `stats`)
     await outputWebpackStats(compilationResult.stats, statsFolder)
     console.log(`Webpack stats wrote to ${statsFolder}`)
+  }
+  if (compilationResult.hasErrors()) {
+    console.dir(compilationResult.stats[0].compilation.warnings)
+    throw new Error(`Compilation finished with errors`)
   }
   if (fixtureConfig.checkExport) {
     const exportName = fixtureConfig.exportName ?? `main.js`

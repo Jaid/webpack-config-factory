@@ -29,6 +29,7 @@ const keys = [
   `options`,
   `records`,
   `valueCacheVersions`,
+  `warnings`,
 ]
 
 export const outputWebpackStats = async (stats: Array<webpack.Stats> | webpack.Stats, folder: string) => {
