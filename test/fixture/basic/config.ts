@@ -18,3 +18,7 @@ export const configBuilder: FixtureConfig['configBuilder'] = context => {
   })
   return builder
 }
+
+export const checkExport = value => {
+  console.dir(value)
+}

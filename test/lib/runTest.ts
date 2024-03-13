@@ -20,7 +20,12 @@ export const fixturesFolder = path.join(rootFolder, `test`, `fixture`)
 export const outputFolder = path.join(rootFolder, `out`, `fixture`)
 
 export type FixtureConfig = {
+  checkExport?: (value: unknown) => Promisable<void>
   configBuilder?: ((passedContext: Record<string, unknown>) => Promisable<ConfigBuilder>) | ConfigBuilder
+  /**
+   * @default 'main.js'
+   */
+  exportName?: string
 }
 
 export const runTest = async (testContext: TestContext) => {
@@ -77,5 +82,11 @@ export const runTest = async (testContext: TestContext) => {
     const statsFolder = path.join(outputMetaFolder, `stats`)
     await outputWebpackStats(compilationResult.stats, statsFolder)
     console.log(`Webpack stats wrote to ${statsFolder}`)
+  }
+  if (fixtureConfig.checkExport) {
+    const exportName = fixtureConfig.exportName ?? `main.js`
+    const mainFile = path.join(outputCompilationFolder, exportName)
+    const exportValue = await import(pathToFileURL(mainFile).toString()) as {default: unknown}
+    await fixtureConfig.checkExport(exportValue.default)
   }
 }
