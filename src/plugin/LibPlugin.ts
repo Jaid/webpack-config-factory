@@ -5,6 +5,9 @@ export class LibPlugin implements ConfigBuilderPlugin {
     hooks.build.tapPromise(LibPlugin.name, async () => {
       builder.set(`experiments.outputModule`, true)
       builder.set(`output.library.type`, `module`)
+      builder.set(`output.filename`, `[name].js`)
+      builder.set(`output.chunkFilename`, `[name].js`)
+      builder.set(`output.chunkFormat`, `module`)
     })
   }
 }

@@ -1,5 +1,7 @@
 import type {FixtureConfig} from '~/test/lib/runTest.js'
 
+import assert from 'node:assert'
+
 import {LibPlugin} from 'src/plugin/LibPlugin.js'
 
 import {ConfigBuilder} from '~/src/ConfigBuilder.js'
@@ -23,5 +25,5 @@ export const configBuilder: FixtureConfig['configBuilder'] = context => {
 }
 
 export const checkExport = value => {
-  console.dir(value)
+  assert.strictEqual(value, 1)
 }
