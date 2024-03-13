@@ -19,6 +19,10 @@ export const webpack = promisify(webpackOriginal)
 export const fixturesFolder = path.join(rootFolder, `test`, `fixture`)
 export const outputFolder = path.join(rootFolder, `out`, `fixture`)
 
+export type FixtureConfig = {
+  configBuilder?: ((passedContext: Record<string, unknown>) => Promisable<ConfigBuilder>) | ConfigBuilder
+}
+
 export const runTest = async (testContext: TestContext) => {
   const id = testContext.name
   const {fixtureProject, env} = /^(?<fixtureProject>.+)-(?<env>.+)$/.exec(id)!.groups!
@@ -27,8 +31,12 @@ export const runTest = async (testContext: TestContext) => {
   await fs.emptyDir(outputFixtureFolder)
   const outputCompilationFolder = path.join(outputFixtureFolder, `out`)
   const outputMetaFolder = path.join(outputFixtureFolder, `meta`)
-  const builderFile = path.join(fixtureFolder, `builder.ts`)
-  const builderFileExists = await fs.pathExists(builderFile)
+  const fixtureConfigFile = path.join(fixtureFolder, `config.ts`)
+  const fixtureConfigFileExists = await fs.pathExists(fixtureConfigFile)
+  let fixtureConfig: FixtureConfig = {}
+  if (fixtureConfigFileExists) {
+    fixtureConfig = await import(pathToFileURL(fixtureConfigFile).toString()) as FixtureConfig
+  }
   const context = {
     testContext,
     fixture: fixtureProject,
@@ -40,14 +48,10 @@ export const runTest = async (testContext: TestContext) => {
     outputFixtureFolder,
   }
   let configBuilder: ConfigBuilder
-  if (builderFileExists) {
-    const customBuilderModule = await import(pathToFileURL(builderFile).toString()) as {default: (((passedContext: typeof context) => Promisable<ConfigBuilder>) | ConfigBuilder)}
-    const customBuilder = customBuilderModule.default
-    if (customBuilder instanceof ConfigBuilder) {
-      configBuilder = customBuilder
-    } else {
-      configBuilder = await customBuilder(context)
-    }
+  if (fixtureConfig.configBuilder instanceof ConfigBuilder) {
+    configBuilder = fixtureConfig.configBuilder
+  } else if (fixtureConfig.configBuilder !== undefined) {
+    configBuilder = await fixtureConfig.configBuilder(context)
   } else {
     configBuilder = new ConfigBuilder({
       contextFolder: fixtureFolder,
@@ -56,8 +60,12 @@ export const runTest = async (testContext: TestContext) => {
     })
   }
   const config = await configBuilder.build()
-  await toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`))
-  await toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`))
+  await fs.emptyDir(outputMetaFolder)
+  const outputMetaFileJobs = [
+    toCleanYamlFile(context, path.join(outputMetaFolder, `context.yml`)),
+    toCleanYamlFile(config, path.join(outputMetaFolder, `config.yml`)),
+  ]
+  await Promise.all(outputMetaFileJobs)
   const compilationResult = await webpack([config])
   if (compilationResult === undefined) {
     throw new Error(`Webpack compilation did not return anything`)
