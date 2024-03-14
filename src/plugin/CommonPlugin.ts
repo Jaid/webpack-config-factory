@@ -33,7 +33,6 @@ export class CommonPlugin implements ConfigBuilderPlugin {
       builder.set(`output.filename`, `[name].js`)
       builder.set(`output.chunkFilename`, `[name].js`)
       builder.addResolveAlias(`~`, `.`)
-      builder.addResolveAlias(`~`, `.`)
       builder.set(`stats.all`, false)
       builder.set(`stats.assets`, true)
       builder.set(`stats.assetsSort`, `!size`)
@@ -48,7 +47,7 @@ export class CommonPlugin implements ConfigBuilderPlugin {
     hooks.buildProduction.tap(name, () => {
       builder.setDefault(`optimization.minimize`, false)
       builder.set(`output.clean`, true)
-      builder.set(`assetModuleFilename`, `[contenthash][ext][query]`)
+      builder.set(`output.assetModuleFilename`, `[contenthash][ext][query]`)
       builder.set(`optimization.chunkIds`, `deterministic`)
       builder.set(`optimization.concatenateModules`, true)
       builder.set(`optimization.mangleExports`, `size`)
@@ -61,7 +60,7 @@ export class CommonPlugin implements ConfigBuilderPlugin {
     })
     hooks.buildDevelopment.tap(name, () => {
       builder.set(`devtool`, `inline-source-map`)
-      builder.set(`assetModuleFilename`, `assets/[contenthash]_[file]`)
+      builder.set(`output.assetModuleFilename`, `assets/[contenthash]_[file]`)
     })
     hooks.finalizeOptions.tap(name, options => {
       if (!options.outputFolder.includes(`{{mode}}`)) {
