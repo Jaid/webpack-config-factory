@@ -81,6 +81,11 @@ export const runTest = async (testContext: TestContext) => {
     console.log(`Webpack stats wrote to ${statsFolder}`)
   }
   if (compilationResult.hasErrors()) {
+    for (const statsInstance of compilationResult.stats) {
+      for (const error of statsInstance.compilation.errors) {
+        console.error(error)
+      }
+    }
     throw new Error(`Compilation finished with errors`)
   }
   if (fixtureConfig.checkExport) {

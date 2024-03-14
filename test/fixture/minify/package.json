@@ -1,0 +1,8 @@
+{
+  "name": "webpack-config-factory-fixture-minify",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "lodash-es": "4.17.21"
+  }
+}
