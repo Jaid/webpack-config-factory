@@ -1,12 +1,12 @@
-import type {Class} from 'type-fest'
+import type {Class, Get, Paths} from 'type-fest'
 import type {Configuration, RuleSetCondition, RuleSetUse, WebpackPluginInstance} from 'webpack'
-
-import path from 'node:path'
 
 import * as lodash from 'lodash-es'
 import {AsyncSeriesHook, AsyncSeriesWaterfallHook, SyncHook, SyncWaterfallHook} from 'tapable'
+import * as path from 'zeug/path'
 
-export type Key = string
+// @ts-expect-error
+export type Key = Paths<Configuration>
 export type Options = {
   contextFolder: string
   env: string
@@ -15,6 +15,11 @@ export type Options = {
 }
 export type TesterInput = Array<string> | RegExp | string
 export type PluginInput = Class<WebpackPluginInstance> | WebpackPluginInstance
+type SplitChunksOptions = Exclude<NonNullable<NonNullable<Configuration["optimization"]>["splitChunks"]>, false>
+type CacheGroups = SplitChunksOptions["cacheGroups"]
+type ExtractValues<T> = T extends Record<string, infer U> ? U : never;
+type CacheGroup = Exclude<ExtractValues<CacheGroups>, false | Function | RegExp | string | null>
+
 export interface ConfigBuilderPlugin {
   apply: (configBuilder: ConfigBuilder, hooks: HookMap) => void
 }
@@ -86,6 +91,15 @@ export class ConfigBuilder {
   }
   get webpackConfig() {
     return this.config
+  }
+  addCacheGroup(name: string, test: CacheGroup['test'], options: Omit<CacheGroup, | "test"> = {}) {
+    this.setDefault(`optimization.splitChunks.chunks`, `async`)
+    this.setDefault(`optimization.splitChunks.cacheGroups`, {})
+    const splitChunksOptions = this.config.optimization!.splitChunks! as SplitChunksOptions
+    splitChunksOptions.cacheGroups![name] = {
+      test,
+      ...options,
+    }
   }
   addClassOrInstance(key: Key, plugin: PluginInput, options?: unknown) {
     let instance: WebpackPluginInstance
@@ -159,7 +173,8 @@ export class ConfigBuilder {
     this.setDefault(`output.path`, this.outputFolder)
     this.setDefault(`context`, this.contextFolder)
     await hooks.afterBuild.promise()
-    return hooks.finalizeConfig.promise(this.config)
+    const config = hooks.finalizeConfig.promise(this.config)
+    return config
   }
   fromContextFolder(...pathSegments: Array<string>) {
     return path.join(this.contextFolder, ...pathSegments)
@@ -167,8 +182,8 @@ export class ConfigBuilder {
   fromOutputFolder(...pathSegments: Array<string>) {
     return path.join(this.outputFolder, ...pathSegments)
   }
-  get(key: Key) {
-    return lodash.get(this.config, key) as unknown
+  get<T extends Key>(key: T): Get<Configuration, T> {
+    return lodash.get(this.config, key) as Get<Configuration, T>
   }
   getEnsuredArray(key: Key) {
     const array = this.get(key) as Array<unknown> | undefined
@@ -192,10 +207,10 @@ export class ConfigBuilder {
       array.unshift(value)
     }
   }
-  set(key: Key, value) {
+  set<T extends Key>(key: T, value: Get<Configuration, T>) {
     lodash.set(this.config, key, value)
   }
-  setDefault(key: Key, value: unknown) {
+  setDefault<T extends Key>(key: T, value: Get<Configuration, T>) {
     if (!this.has(key)) {
       this.set(key, value)
     }

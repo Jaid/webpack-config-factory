@@ -21,11 +21,10 @@ export class CommonPlugin implements ConfigBuilderPlugin {
     })
     hooks.build.tapPromise(name, async () => {
       builder.set(`mode`, builder.mode)
-      builder.setDefault(`target`, `web`)
       builder.set(`experiments.topLevelAwait`, true)
       builder.set(`experiments.futureDefaults`, true)
       builder.set(`experiments.outputModule`, true)
-      builder.set(`module`, true)
+      builder.set(`output.module`, true)
       builder.set(`output.chunkFormat`, `module`)
       builder.set(`output.chunkLoading`, `import`)
       builder.set(`output.hashDigest`, `base64url`)
@@ -43,6 +42,12 @@ export class CommonPlugin implements ConfigBuilderPlugin {
       builder.set(`stats.errorDetails`, true)
       builder.set(`module.parser.javascript.importMeta`, true)
       builder.set(`module.parser.javascript.importMetaContext`, true)
+      builder.set(`optimization.realContentHash`, true)
+      builder.set(`optimization.runtimeChunk.name`, `runtime`)
+      builder.addCacheGroup(`defaultVendors`, /[/\\]node_modules[/\\]/, {
+        chunks: `all`,
+        name: `vendor`,
+      })
     })
     hooks.buildProduction.tap(name, () => {
       builder.setDefault(`optimization.minimize`, false)
@@ -52,11 +57,6 @@ export class CommonPlugin implements ConfigBuilderPlugin {
       builder.set(`optimization.concatenateModules`, true)
       builder.set(`optimization.mangleExports`, `size`)
       builder.set(`optimization.removeAvailableModules`, true)
-      builder.set(`optimization.runtimeChunk.name`, `runtime`)
-      builder.set(`optimization.splitChunks.chunks`, `async`)
-      builder.set(`optimization.splitChunks.cacheGroups.defaultVendors.test`, /[/\\]node_modules[/\\]/)
-      builder.set(`optimization.splitChunks.cacheGroups.defaultVendors.name`, `vendor`)
-      builder.set(`optimization.splitChunks.cacheGroups.defaultVendors.chunks`, `all`)
     })
     hooks.buildDevelopment.tap(name, () => {
       builder.set(`devtool`, `inline-source-map`)
